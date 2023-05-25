@@ -13,15 +13,18 @@ public class PlanetSide
     Vector3 localX; // ^ local X axis
     Vector3 localZ; // ^ local Z axis
 
+    float radius; // Radius of the planet
+
     // Constructor
-    public PlanetSide(Mesh a_mesh, int a_resolution, Vector3 a_localY)
+    public PlanetSide(Mesh a_mesh, int a_resolution, Vector3 a_localY, float a_radius)
     {
         // Setting variables
         mesh = a_mesh;
         resolution = a_resolution;
         localY = a_localY;
+        radius = a_radius;
 
-        // Calculating other 2 directions
+        // Calculating other 2 local axes
         localX = new Vector3(localY.y, localY.z, localY.x);
         localZ = Vector3.Cross(localY, localX); // Cross product will return direction perpendicular to both Z and Y, making the X axis
     }
@@ -50,13 +53,11 @@ public class PlanetSide
 
                 // Finding the point where this vertex lies on this side of the planet's quad sphere
                 // The far left corner (first vertex) would have the coordinates X:-1 Y:1 Z:-1 and the opposite corner would be X:1 Y:1 Z:1 (if localY was an upwards vector)
-                Vector3 pointOnCubeMesh = localY + (((progressX * 2.0f) - 1.0f) * localX) + (((progressY * 2.0f) - 1.0f) * localZ);
+                // It is then normalised to transform the cube shape into a sphere (making a quad sphere)
+                Vector3 pointOnMesh = (localY + (((progressX * 2.0f) - 1.0f) * localX) + (((progressY * 2.0f) - 1.0f) * localZ)).normalized;
 
-                // Finding where that same point would be on the quad sphere. This is done by making the distance from the centre point to each vertex equal
-                Vector3 pointOnSphereMesh = pointOnCubeMesh.normalized;
-
-                // Add this vertex to the vertex array
-                vertices[iterations] = pointOnSphereMesh;
+                // Add this vertex to the vertex array, also multiply by radius
+                vertices[iterations] = pointOnMesh * radius;
 
                 // Adding the triangles to their array
                 // Do not generate triangles on vertices that are on the edge of the mesh

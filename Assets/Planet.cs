@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class Planet : MonoBehaviour
 {
-    [Range (2, 256)] public int resolution = 10; // The resolution of the meshes on each side of the quad sphere
+    [Range(2, 256)] public int resolution = 10; // The resolution of the meshes on each side of the quad sphere
+    [Range(0.1f, 10.0f)] public float radius = 1; // The radius of the planet
 
-    [SerializeField] MeshFilter[] meshFilters; // The meshes for each side of the planet
+    MeshFilter[] meshFilters; // The meshes for each side of the planet
     PlanetSide[] planetSides; // The PlanetSides for each side of the planet
 
     // Calls whenever scripts are reloaded in editor
@@ -41,7 +42,7 @@ public class Planet : MonoBehaviour
             }
 
             // Set up PlanetSide constructors so mesh can be generated on each face of the quad sphere
-            planetSides[i] = new PlanetSide(meshFilters[i].sharedMesh, resolution, allDirections[i]);
+            planetSides[i] = new PlanetSide(meshFilters[i].sharedMesh, resolution, allDirections[i], radius);
         }
     }
 
