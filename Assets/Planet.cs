@@ -5,8 +5,13 @@ using UnityEditor;
 
 public class Planet : MonoBehaviour
 {
-    [Range(2, 256)] public int resolution = 10; // The resolution of the meshes on each side of the quad sphere
-    [Range(0.1f, 10.0f)] public float radius = 1; // The radius of the planet
+    [SerializeField] bool autoUpdate = true; // Planet will auto re-generate if values are changed in the inspector
+    [SerializeField] [Range(2, 256)] public int resolution = 10; // The resolution of the meshes on each side of the quad sphere
+
+    [SerializeField] [Range(0.1f, 10.0f)] public float radius = 1; // The radius of the planet
+    [SerializeField] Material material; // The material that the planet uses
+
+    [SerializeField] NoiseSettings noiseSettings;
 
     MeshFilter[] meshFilters; // The meshes for each side of the planet
     PlanetSide[] planetSides; // The PlanetSides for each side of the planet
@@ -14,7 +19,7 @@ public class Planet : MonoBehaviour
     // Calls whenever scripts are reloaded in editor
     private void OnValidate()
     {
-        //GeneratePlanet();
+        if (autoUpdate) GeneratePlanet();
     }
 
     // Initialises the planet and sets up the mesh for each side of the planet's quad sphere
@@ -24,11 +29,15 @@ public class Planet : MonoBehaviour
         planetSides = new PlanetSide[6]; // Array that will contain each of the planets sides
         Vector3[] allDirections = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back }; // Array containing all 6 directions
 
+        // If a planet material is missing use default unity shader
+        if (material == null) material = new Material(Shader.Find("Standard"));
+
         for (int i = 0; i < 6; ++i)
         {
+            // The gameobject that the mesh will live on
             GameObject meshObject;
 
-            // There is currently no mesh gameobject for this side in the scene, create a new one
+            // There is currently no exisiting gameobject for this mesh & side in the scene, create a new one
             if (transform.Find("Mesh " + i) == null)
             {
                 // Create GameObject for the mesh and parent it to the planet
@@ -36,33 +45,36 @@ public class Planet : MonoBehaviour
                 meshObject.transform.parent = this.transform;
 
                 // Give the GameObject a mesh renderer and apply default material
-                meshObject.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Standard"));
+                meshObject.AddComponent<MeshRenderer>().sharedMaterial = material;
 
                 // Add mesh filter and give it a new mesh
                 meshFilters[i] = meshObject.AddComponent<MeshFilter>();
                 meshFilters[i].sharedMesh = new Mesh();
             }
 
-            // Gameobjects are in scene but filters are empty (happens after unity restart)
+            // The gameobject is in the scene but the mesh filter for this side is empty (happens after a unity restart)
             else if (meshFilters[i] == null)
             {
                 // Get the mesh filter from the gameobject
                 meshObject = transform.Find("Mesh " + i).gameObject;
-                MeshFilter meshFilter = meshObject.GetComponent<MeshFilter>();
 
-                // If the gameobject is missing the mesh filter component for whatever reason then generate a new one
-                if (meshFilter == null)
+                // If the gameobject is missing a mesh renderer component for whatever reason then generate a new one
+                if (meshObject.GetComponent<MeshRenderer>() == null)
                 {
-                    meshFilter = meshObject.AddComponent<MeshFilter>();
-                    meshFilter.sharedMesh = new Mesh();
+                    meshObject.AddComponent<MeshRenderer>().sharedMaterial = material;
+                }
+                // Same as above but for the mesh filter component
+                if (meshObject.GetComponent<MeshFilter>() == null)
+                {
+                    meshObject.AddComponent<MeshFilter>().sharedMesh = new Mesh();
                 }
 
                 // Set mesh filter in the array
-                meshFilters[i] = meshFilter;
+                meshFilters[i] = meshObject.GetComponent<MeshFilter>();
             }
 
             // Set up PlanetSide constructors so mesh can be generated on each face of the quad sphere
-            planetSides[i] = new PlanetSide(meshFilters[i].sharedMesh, resolution, allDirections[i], radius);
+            planetSides[i] = new PlanetSide(meshFilters[i].sharedMesh, resolution, allDirections[i], radius, noiseSettings);
         }
     }
 
@@ -76,11 +88,22 @@ public class Planet : MonoBehaviour
         }
     }
 
+    // Updates the planets material
+    private void UpdateMaterial()
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            MeshRenderer renderer = transform.Find("Mesh " + i).GetComponent<MeshRenderer>();
+            if (renderer != null) renderer.sharedMaterial = material;
+        }
+    }
+
     // Completely generates a new planet
     public void GeneratePlanet()
     {
         Init();
         GenerateMesh();
+        UpdateMaterial();
     }
 }
 

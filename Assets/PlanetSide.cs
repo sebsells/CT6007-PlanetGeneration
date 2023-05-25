@@ -15,14 +15,17 @@ public class PlanetSide
 
     float radius; // Radius of the planet
 
+    NoiseSettings noise;
+
     // Constructor
-    public PlanetSide(Mesh a_mesh, int a_resolution, Vector3 a_localY, float a_radius)
+    public PlanetSide(Mesh a_mesh, int a_resolution, Vector3 a_localY, float a_radius, NoiseSettings a_noise)
     {
         // Setting variables
         mesh = a_mesh;
         resolution = a_resolution;
         localY = a_localY;
         radius = a_radius;
+        noise = a_noise;
 
         // Calculating other 2 local axes
         localX = new Vector3(localY.y, localY.z, localY.x);
@@ -39,6 +42,9 @@ public class PlanetSide
         // The size of the array is equivalent to the total number of points on every triangle
         // The amount of squares in the array is (resolution - 1)^2. The amount of triangles is just double that. Then times 3 for every point on the triangles.
         int[] triangles = new int[(resolution - 1) * (resolution - 1) * 6];
+
+        // Array that holds the normals for each vertex
+        Vector3[] normals = new Vector3[resolution * resolution];
 
         // For loop that iterates through every single vertex
         int iterations = 0; // How many vertices has been iterated through in the for loops
@@ -57,7 +63,10 @@ public class PlanetSide
                 Vector3 pointOnMesh = (localY + (((progressX * 2.0f) - 1.0f) * localX) + (((progressY * 2.0f) - 1.0f) * localZ)).normalized;
 
                 // Add this vertex to the vertex array, also multiply by radius
-                vertices[iterations] = pointOnMesh * radius;
+                vertices[iterations] = pointOnMesh * (radius + noise.GetNoiseFromPoint(pointOnMesh));
+
+                // Calculate normals
+                normals[iterations] = pointOnMesh;
 
                 // Adding the triangles to their array
                 // Do not generate triangles on vertices that are on the edge of the mesh
@@ -76,8 +85,6 @@ public class PlanetSide
                     triIndex += 6;
                 }
 
-
-
                 // One iteration through the vertices
                 iterations++;
             }
@@ -87,8 +94,9 @@ public class PlanetSide
         mesh.Clear();
 
         // Set mesh vertices and triangles to newly calculated ones
+        // Also update the normals so the lighting on the planet looks normal
         mesh.vertices = vertices;
         mesh.triangles = triangles;
-        mesh.normals = vertices;
+        mesh.normals = normals;
     }
 }
