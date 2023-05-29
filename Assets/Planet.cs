@@ -11,7 +11,7 @@ public class Planet : MonoBehaviour
     [SerializeField] [Range(0.1f, 10.0f)] public float radius = 1; // The radius of the planet
     [SerializeField] Material material; // The material that the planet uses
 
-    [SerializeField] NoiseSettings noiseSettings;
+    [SerializeField] List<NoiseSettings> noiseSettings;
 
     MeshFilter[] meshFilters; // The meshes for each side of the planet
     PlanetSide[] planetSides; // The PlanetSides for each side of the planet
