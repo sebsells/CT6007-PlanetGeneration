@@ -97,19 +97,20 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _MaxHeight: 2.5688043
+    - _MaxHeight: 8.979599
     - _Metallic: 0
-    - _MinHeight: 2.3999999
+    - _MinHeight: 8.007998
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RangeOffset: -6.41
-    - _RangeSize: 4.62
+    - _RangeOffset: 4.1999993
+    - _RangeSize: 0.38286495
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _TexWidth: 256
     - _UVSec: 0
     - _ZWrite: 1
     - _test: 5.5

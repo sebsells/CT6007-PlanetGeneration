@@ -104,6 +104,7 @@ public class Planet : MonoBehaviour
 
             int textureWidth = 256; // Width of the texture
             Texture2D texture = new Texture2D(textureWidth, 1); // Create a new texture
+            material.SetFloat("_TexWidth", textureWidth);
 
             for (int j = 0; j < textureWidth; ++j)
             {
@@ -118,10 +119,10 @@ public class Planet : MonoBehaviour
 
         // Update elevation values on the material
         Vector2 elevationValues = GetElevationMinMax(planetSides);
-        material.SetFloat("_MinHeight", elevationValues.x + 1.0f);
-        material.SetFloat("_MaxHeight", elevationValues.y + 1.0f);
-
-        material.SetFloat("_RangeSize", elevationValues.y - elevationValues.x);
+        //material.SetFloat("_MinHeight", elevationValues.x * 2.0f);
+        //material.SetFloat("_MaxHeight", elevationValues.y * 2.0f);
+        material.SetFloat("_RangeOffset", elevationValues.x);
+        material.SetFloat("_RangeSize", (elevationValues.y - elevationValues.x) * 0.75f);
 
         // Updating the material for each planet side
         for (int i = 0; i < 6; ++i)
