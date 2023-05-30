@@ -10,6 +10,8 @@ public class Planet : MonoBehaviour
 
     [SerializeField] [Range(0.1f, 10.0f)] public float radius = 1; // The radius of the planet
     [SerializeField] Material material; // The material that the planet uses
+    [SerializeField] Gradient gradient; // The colour gradient that the material will use
+    Gradient lastGradient; // Gradient of the planet on it's last generation. Used to prevent constantly creating a new texture2D every time the planet is updated
 
     [SerializeField] List<NoiseSettings> noiseSettings;
 
@@ -91,6 +93,37 @@ public class Planet : MonoBehaviour
     // Updates the planets material
     private void UpdateMaterial()
     {
+        // If the gradient has changed update the shader's texture2D sample
+        if (lastGradient == null || gradient.Equals(lastGradient))
+        {
+            // Create a new texture based off the gradient that the shader can sample from
+            // Wouldn't need to do this if shadergraph could expose gradients to the editor :)
+
+            Debug.Log(gradient.colorKeys);
+            Debug.Log(lastGradient.colorKeys);
+
+            int textureWidth = 256; // Width of the texture
+            Texture2D texture = new Texture2D(textureWidth, 1); // Create a new texture
+
+            for (int j = 0; j < textureWidth; ++j)
+            {
+                texture.SetPixel(j, 0, gradient.Evaluate(j / (textureWidth - 1.0f))); // Set each pixel in the texture to the corresponding colour in the gradient
+            }
+            texture.Apply();
+
+            material.SetTexture("_GradientTex", texture); // Set new texture on the shader
+        }
+        // Update last gradient value
+        gradient = lastGradient;
+
+        // Update elevation values on the material
+        Vector2 elevationValues = GetElevationMinMax(planetSides);
+        material.SetFloat("_MinHeight", elevationValues.x + 1.0f);
+        material.SetFloat("_MaxHeight", elevationValues.y + 1.0f);
+
+        material.SetFloat("_RangeSize", elevationValues.y - elevationValues.x);
+
+        // Updating the material for each planet side
         for (int i = 0; i < 6; ++i)
         {
             MeshRenderer renderer = transform.Find("Mesh " + i).GetComponent<MeshRenderer>();
@@ -104,6 +137,22 @@ public class Planet : MonoBehaviour
         Init();
         GenerateMesh();
         UpdateMaterial();
+    }
+
+    // Gets maximum and minimum elevation values for the whole planet
+    private Vector2 GetElevationMinMax(PlanetSide[] a_planetSides)
+    {
+        Vector2 elevationMinMax = new Vector2(float.MaxValue, float.MinValue);
+        for (int i = 0; i < a_planetSides.Length; ++i)
+        {
+            if (a_planetSides[i] != null)
+            {
+                Vector2 sideElevations = a_planetSides[i].GetElevationMinMax();
+                elevationMinMax.x = Mathf.Min(elevationMinMax.x, sideElevations.x);
+                elevationMinMax.y = Mathf.Max(elevationMinMax.y, sideElevations.y);
+            }
+        }
+        return elevationMinMax;
     }
 }
 

@@ -1,5 +1,3 @@
-// Ignore Spelling: lacunarity
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,7 +8,7 @@ public class NoiseSettings
     public float frequency; // The frequency of the perlin noise. As this value rises so will the frequency of elevation changes
     public float strength; // The strength of the perlin noise. As this value rises so will the peaks in elevation
 
-    [Range(1,6)]public int octaves; // The amount of layers of noise
+    [Range(1,6)] public int octaves; // The amount of layers of noise
     public float lacunarity; // The rate of change of frequency between each layer of noise
     public float persistence; // The rate of change of strength between each layer of noise
 

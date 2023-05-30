@@ -15,6 +15,8 @@ public class PlanetSide
 
     float radius; // Radius of the planet
 
+    Vector2 elevationMixMax = new Vector2(float.MaxValue, float.MinValue); // Maximum and minimum elevation values of this planet face
+
     List<NoiseSettings> noiseLayers;
 
     // Constructor
@@ -51,7 +53,7 @@ public class PlanetSide
         int triIndex = 0; // How many entries have been added to the triangles array
         for (int y = 0; y < resolution; y++)
         {
-            float progressY = (float)y / (resolution - 1); // How far through iterating the y axis we are
+            float progressY = y / (resolution - 1.0f); // How far through iterating the y axis we are
 
             for (int x = 0; x < resolution; x++)
             {
@@ -72,6 +74,10 @@ public class PlanetSide
                     totalNoiseValue += noiseLayers[i].GetNoiseFromPoint(pointOnMesh) + 0.5f;
                 }
                 if (totalNoiseValue != 0.0f) vertices[iterations] *= totalNoiseValue;
+
+                // Check for minimum and maximum value
+                elevationMixMax.x = Mathf.Min(elevationMixMax.x, vertices[iterations].magnitude);
+                elevationMixMax.y = Mathf.Max(elevationMixMax.y, vertices[iterations].magnitude);
 
                 // Calculate normals
                 normals[iterations] = pointOnMesh;
@@ -107,4 +113,7 @@ public class PlanetSide
         mesh.triangles = triangles;
         mesh.RecalculateNormals();
     }
+
+    // Returns the highest and lowest elevation values on this planet face
+    public Vector2 GetElevationMinMax() { return elevationMixMax; }
 }
