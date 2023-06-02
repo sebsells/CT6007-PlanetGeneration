@@ -33,7 +33,7 @@ public class Planet : MonoBehaviour
     // Initialises the planet and sets up the mesh for each side of the planet's quad sphere
     private void Init()
     {
-        if (meshFilters == null) meshFilters = new MeshFilter[6]; // 6 mesh filters for each side of the planet's quad sphere
+        if (meshFilters == null || meshFilters.Length == 0) meshFilters = new MeshFilter[6]; // 6 mesh filters for each side of the planet's quad sphere
         planetSides = new PlanetSide[6]; // Array that will contain each of the planets sides
         Vector3[] allDirections = { Vector3.up, Vector3.down, Vector3.left, Vector3.right, Vector3.forward, Vector3.back }; // Array containing all 6 directions
 
