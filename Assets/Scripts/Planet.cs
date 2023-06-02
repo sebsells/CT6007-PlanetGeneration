@@ -11,7 +11,7 @@ public class Planet : MonoBehaviour
     [SerializeField] [Range(0.1f, 10.0f)] public float radius = 1; // The radius of the planet
     [SerializeField] Material material; // The material that the planet uses
     [SerializeField] Gradient gradient; // The colour gradient that the material will use
-    Gradient lastGradient; // Gradient of the planet on it's last generation. Used to prevent constantly creating a new texture2D every time the planet is updated
+    [SerializeField] Texture2D gradientTexture;
 
     [SerializeField] List<NoiseSettings> noiseSettings;
 
@@ -22,6 +22,12 @@ public class Planet : MonoBehaviour
     private void OnValidate()
     {
         if (autoUpdate) GeneratePlanet();
+    }
+
+    // Calls whenever the scene is started
+    private void Start()
+    {
+        GeneratePlanet();
     }
 
     // Initialises the planet and sets up the mesh for each side of the planet's quad sphere
@@ -94,28 +100,7 @@ public class Planet : MonoBehaviour
     private void UpdateMaterial()
     {
         // If the gradient has changed update the shader's texture2D sample
-        if (lastGradient == null || gradient.Equals(lastGradient))
-        {
-            // Create a new texture based off the gradient that the shader can sample from
-            // Wouldn't need to do this if shadergraph could expose gradients to the editor :)
-
-            Debug.Log(gradient.colorKeys);
-            Debug.Log(lastGradient.colorKeys);
-
-            int textureWidth = 256; // Width of the texture
-            Texture2D texture = new Texture2D(textureWidth, 1); // Create a new texture
-            material.SetFloat("_TexWidth", textureWidth);
-
-            for (int j = 0; j < textureWidth; ++j)
-            {
-                texture.SetPixel(j, 0, gradient.Evaluate(j / (textureWidth - 1.0f))); // Set each pixel in the texture to the corresponding colour in the gradient
-            }
-            texture.Apply();
-
-            material.SetTexture("_GradientTex", texture); // Set new texture on the shader
-        }
-        // Update last gradient value
-        gradient = lastGradient;
+        if (gradient != null) UpdateTexture();
 
         // Update elevation values on the material
         Vector2 elevationValues = GetElevationMinMax(planetSides);
@@ -130,6 +115,22 @@ public class Planet : MonoBehaviour
             MeshRenderer renderer = transform.Find("Mesh " + i).GetComponent<MeshRenderer>();
             if (renderer != null) renderer.sharedMaterial = material;
         }
+    }
+
+    // Updates the texture2D used by the shader for the new gradient
+    public void UpdateTexture()
+    {
+        int textureWidth = 256;
+        gradientTexture = new Texture2D(textureWidth, 1);
+        material.SetFloat("_TexWidth", textureWidth);
+
+        for (int j = 0; j < textureWidth; ++j)
+        {
+            gradientTexture.SetPixel(j, 0, gradient.Evaluate(j / (textureWidth - 1.0f))); // Set each pixel in the texture to the corresponding colour in the gradient
+        }
+        gradientTexture.Apply();
+
+        material.SetTexture("_GradientTex", gradientTexture); // Set new texture on the shader
     }
 
     // Completely generates a new planet
@@ -158,6 +159,7 @@ public class Planet : MonoBehaviour
 }
 
 // Button in editor that allows the planet to be regenerated
+// Leave commented out in order to build
 [CustomEditor(typeof(Planet))]
 public class PlanetEditor : Editor
 {
@@ -165,5 +167,6 @@ public class PlanetEditor : Editor
     {
         base.OnInspectorGUI();
         if (GUILayout.Button("Regenerate")) ((Planet)target).GeneratePlanet();
+        if (GUILayout.Button("Regenerate Gradient")) ((Planet)target).UpdateTexture();
     }
 }
